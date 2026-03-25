@@ -1,0 +1,111 @@
+{
+  "name": "Minimal Three Office Agent",
+  "blank_symbol": "_",
+  "alphabet": ["-1", "0", "+1", "_"],
+  "initial_tape": ["0", "-1", "+1", "_"],
+  "initial_head": 0,
+  "offices": [
+    {
+      "id": "generator",
+      "role": "generator",
+      "pillar": "right",
+      "title": "Generator",
+      "description": "Spawn candidates, extend search, and propose actions.",
+      "patch_radius": 1,
+      "can_emit_packets": true,
+      "can_commit_to_tape": false,
+      "semantics": {
+        "healthy_label": "useful",
+        "latent_label": "waiting",
+        "corrupt_label": "hallucinating",
+        "healthy_description": "productive expansion with grounded proposals",
+        "latent_description": "candidate generation withheld pending evidence",
+        "corrupt_description": "sprawl, unstable proliferation, and tool overuse"
+      }
+    },
+    {
+      "id": "arbiter",
+      "role": "arbiter",
+      "pillar": "center",
+      "title": "Arbiter",
+      "description": "Stabilize neighborhoods, merge compatible structures, and commit.",
+      "patch_radius": 1,
+      "can_emit_packets": false,
+      "can_commit_to_tape": true,
+      "semantics": {
+        "healthy_label": "coherent",
+        "latent_label": "pending",
+        "corrupt_label": "false_balance",
+        "healthy_description": "good synthesis and lawful promotion to tape",
+        "latent_description": "not yet enough stability to commit",
+        "corrupt_description": "polished inconsistency and fake harmony"
+      }
+    },
+    {
+      "id": "critic",
+      "role": "critic",
+      "pillar": "left",
+      "title": "Critic",
+      "description": "Prune weak structures, reject unsupported claims, and route to sinks.",
+      "patch_radius": 1,
+      "can_emit_packets": false,
+      "can_commit_to_tape": false,
+      "semantics": {
+        "healthy_label": "bounded",
+        "latent_label": "unsure",
+        "corrupt_label": "paralyzed",
+        "healthy_description": "useful filtering and risk detection",
+        "latent_description": "withholding judgment pending evidence",
+        "corrupt_description": "sterile refusal and premature collapse"
+      }
+    }
+  ],
+  "paths": [
+    {
+      "source": "generator",
+      "target": "arbiter",
+      "label": "propose_to_synthesize",
+      "preferred_move": "next",
+      "strengthen_on_success": 1.2,
+      "weaken_on_failure": 1.0
+    },
+    {
+      "source": "arbiter",
+      "target": "critic",
+      "label": "needs_boundary_check",
+      "preferred_move": "stay",
+      "strengthen_on_success": 1.1,
+      "weaken_on_failure": 1.2
+    },
+    {
+      "source": "critic",
+      "target": "arbiter",
+      "label": "filtered_back_for_resolution",
+      "preferred_move": "prev",
+      "strengthen_on_success": 1.2,
+      "weaken_on_failure": 1.0
+    },
+    {
+      "source": "arbiter",
+      "target": "generator",
+      "label": "needs_more_candidates",
+      "preferred_move": "stay",
+      "strengthen_on_success": 1.0,
+      "weaken_on_failure": 1.1
+    }
+  ],
+  "field_seed": [],
+  "tape_regions": [
+    {
+      "name": "working_set",
+      "start": 0,
+      "end": 3
+    }
+  ],
+  "start_office": "generator",
+  "start_integrity": "seed",
+  "start_symbol": "0",
+  "accept_offices": [],
+  "reject_offices": [],
+  "missing_rule_policy": "halt"
+}

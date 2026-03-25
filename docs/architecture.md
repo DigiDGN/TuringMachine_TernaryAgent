@@ -8,9 +8,12 @@ The project is structured around a strict separation between:
 
 - the **Turing machine domain**
 - the **simulator application shell**
+- the **high-level authoring compiler**
 
 The domain is plain Python logic. The app shell handles interaction, timing,
-hierarchical state transitions, rendering, and event publication.
+hierarchical state transitions, rendering, and event publication. The compiler
+layer validates higher-level authored agent specs and flattens them into the
+runtime TM schema.
 
 ```mermaid
 flowchart LR
@@ -28,9 +31,12 @@ flowchart LR
 | Package | Responsibility |
 | --- | --- |
 | `tmviz.app` | Commands, controller state machine, app events, step orchestration |
+| `tmviz.compiler` | High-level ternary agent compilation into raw TM mappings |
 | `tmviz.domain` | Tape, moves, rules, machine configuration, halting semantics |
 | `tmviz.factory` | JSON normalization, validation, and machine construction |
+| `tmviz.graph` | Legal office handoff graph construction and validation |
 | `tmviz.infra` | Spec loading, logging bootstrap, synchronous event bus |
+| `tmviz.model` | Pydantic authoring models for offices, paths, and agent specs |
 | `tmviz.ui` | Pygame renderer, layout budgeting, theme, and input mapping |
 
 ## Entry Point
@@ -46,6 +52,10 @@ It is responsible for:
 - handling the top-level event loop
 - forwarding `VIDEORESIZE` and keyboard events
 - calling `controller.update()` and `renderer.render()` each frame
+
+The desktop app still defaults to bundled raw TM JSON specs from `specs/`, but
+`MachineSpecFactory` can now also compile high-level agent specs passed through
+`--spec` before building the runtime machine.
 
 ## Controller Lifecycle
 
@@ -155,6 +165,27 @@ Supporting domain types:
 - `MachineConfiguration`: normalized, validated machine config
 - `PreparedStep` and `StepResult`: structured transition data
 
+## High-Level Compile Layer
+
+Phase 1 adds a separate authoring layer above the runtime kernel:
+
+```mermaid
+flowchart LR
+    A[AgentSpec authoring model] --> B[office graph validation]
+    B --> C[compiler flattening]
+    C --> D[raw TM mapping]
+    D --> E[MachineSpecFactory]
+    E --> F[TuringMachine]
+```
+
+Important boundary rules:
+
+- the runtime kernel still consumes only flat TM states, symbols, and 5-tuples
+- the controller phases remain `fetch -> lookup -> write -> move -> commit`
+- bundled cycling still uses raw JSON machine specs from `specs/`
+- high-level agent specs can enter through Python APIs or the normal `--spec`
+  app entry path, but they are always compiled before runtime construction
+
 ## Event Flow
 
 The event bus is intentionally tiny and synchronous.
@@ -185,6 +216,8 @@ metrics. The renderer uses clipping, wrapping, and ellipsis to prevent overlap.
 Good places to extend the project:
 
 - add new JSON machines in `specs/`
+- add new high-level authoring examples in `examples/`
+- extend the compiler and graph logic in `tmviz.compiler` and `tmviz.graph`
 - add new validator rules in `tmviz.factory`
 - add new controller commands or events in `tmviz.app`
 - evolve the renderer or theme in `tmviz.ui`

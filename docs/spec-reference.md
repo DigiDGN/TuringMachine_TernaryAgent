@@ -7,7 +7,16 @@
 Machine specs are JSON files loaded by `MachineSpecFactory`, normalized by the
 validator layer, and then converted into a runtime `TuringMachine`.
 
-Bundled examples live under `specs/`.
+Bundled runtime examples live under `specs/`.
+
+This document describes the raw runtime TM schema. The Phase 1 ternary agent
+authoring layer is separate, lives outside `specs/`, and compiles into this
+exact format before the factory sees it.
+
+Canonical authoring artifacts:
+
+- `examples/minimal_three_office.agent.json`
+- `examples/minimal_three_office.compiled.json`
 
 ## Required Fields
 
@@ -170,9 +179,41 @@ Typical invalid specs include:
 - Start with a tiny machine and add rules incrementally.
 - Run the test suite after adding new bundled specs.
 
+## High-Level Authoring Layer
+
+If you are authoring ternary office graphs instead of raw TM rules, use the
+high-level compile API and keep those files outside `specs/`.
+
+```python
+import json
+from pathlib import Path
+
+from tmviz.compiler import compile_agent_mapping
+from tmviz.factory.machine_factory import MachineSpecFactory
+
+raw_agent = json.loads(
+    Path("examples/minimal_three_office.agent.json").read_text(encoding="utf-8")
+)
+compiled = compile_agent_mapping(raw_agent)
+machine = MachineSpecFactory().from_mapping(compiled.to_mapping())
+```
+
+The authored `AgentSpec` contains offices, legal paths, and integrity-aware
+start state. The compiler flattens that into:
+
+- state names shaped like `<office_id>__<integrity>`
+- standard TM rule rows shaped like `[state, read, next_state, write, move]`
+- the same `blank_symbol`, `alphabet`, `initial_tape`, `initial_head`, and
+  `missing_rule_policy` fields used by raw runtime specs
+
+You can also point the desktop app directly at an authored file:
+
+```bash
+python -m tmviz --spec examples/minimal_three_office.agent.json
+```
+
 ## Related Docs
 
 - Use the simulator interactively with the [User Guide](user-guide.md).
 - See controller, rendering, and event flow details in the [Architecture Guide](architecture.md).
 - For setup and contribution workflow, see [Contributing Guide](contributing.md).
-

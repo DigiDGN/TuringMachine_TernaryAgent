@@ -4,10 +4,13 @@
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
 
 A desktop Turing machine simulator and visualizer built with Python 3.12,
-[`pygame-ce`](https://pyga.me/), and [`transitions`](https://github.com/pytransitions/transitions).
-It separates the mathematical Turing machine from the simulator shell, so the
-core execution model stays deterministic while the app remains interactive and
-teachable.
+[`pygame-ce`](https://pyga.me/), and
+[`transitions`](https://github.com/pytransitions/transitions).
+It keeps the runtime Turing machine deterministic while the app shell stays
+interactive and teachable.
+
+Phase 1 also adds a high-level ternary agent authoring layer that compiles into
+the existing flat TM schema rather than changing the runtime engine.
 
 ![Turing Machine Visualizer overview](docs/assets/screenshots/overview.png)
 
@@ -17,8 +20,8 @@ teachable.
   and the 2-state busy beaver.
 - Step one transition at a time or run continuously at adjustable speed.
 - Watch machine state, active rule, tape head, and event history update live.
-- Explore an architecture that keeps domain semantics, controller logic, and UI
-  rendering cleanly separated.
+- Explore an architecture that keeps domain semantics, controller logic, UI
+  rendering, and high-level authoring concerns separate.
 
 ## Quick Start
 
@@ -44,6 +47,13 @@ python -m tmviz
 
 The app starts with the first bundled spec, opens a resizable terminal-style
 window, and enforces a minimum size of `960x600`.
+
+You can also point `--spec` at a high-level authored agent file and let the
+factory compile it before runtime construction:
+
+```bash
+python -m tmviz --spec examples/minimal_three_office.agent.json
+```
 
 ## Developer Commands
 
@@ -139,8 +149,8 @@ boot, idle, loaded, running sub-phases, paused, halted, and error states.
 
 ## Machine Spec At A Glance
 
-Machine definitions live in JSON and are validated before they become runtime
-objects.
+Runtime machine definitions live in JSON under `specs/` and are validated
+before they become runtime objects.
 
 ```json
 {
@@ -167,18 +177,102 @@ Each rule row follows:
 ```
 
 Supported directions are `L`, `R`, and `S`. The full schema, defaults, and
-validation rules are documented in [docs/spec-reference.md](docs/spec-reference.md).
+validation rules are documented in
+[docs/spec-reference.md](docs/spec-reference.md).
+
+## High-Level Agent Authoring
+
+High-level ternary agent specs are separate from the raw bundled TM specs in
+`specs/`. They live outside `specs/`, compile into the exact runtime schema
+above, and then flow through `MachineSpecFactory` unchanged. The factory now
+accepts those authored mappings and paths directly, so `--spec` can point at a
+raw TM JSON file or an authored `.agent.json` file.
+
+Canonical example files:
+
+- `examples/minimal_three_office.agent.json`
+- `examples/minimal_three_office.compiled.json`
+
+Authoring shape:
+
+```json
+{
+  "name": "Minimal Three Office Agent",
+  "blank_symbol": "_",
+  "alphabet": ["-1", "0", "+1", "_"],
+  "initial_tape": ["0", "-1", "+1", "_"],
+  "initial_head": 0,
+  "start_office": "generator",
+  "start_integrity": "seed",
+  "paths": [
+    ["generator", "arbiter"],
+    ["arbiter", "critic"],
+    ["critic", "arbiter"],
+    ["arbiter", "generator"]
+  ]
+}
+```
+
+Compiled TM shape:
+
+```json
+{
+  "start_state": "generator__seed",
+  "states": [
+    "generator__death",
+    "generator__seed",
+    "generator__life",
+    "arbiter__death",
+    "arbiter__seed",
+    "arbiter__life",
+    "critic__death",
+    "critic__seed",
+    "critic__life"
+  ],
+  "rules": [
+    ["generator__seed", "0", "arbiter__life", "+1", "R"],
+    ["critic__life", "+1", "arbiter__seed", "0", "L"],
+    ["arbiter__seed", "0", "generator__seed", "0", "S"]
+  ]
+}
+```
+
+Compile API:
+
+```python
+import json
+from pathlib import Path
+
+from tmviz.compiler import compile_agent_mapping
+from tmviz.factory.machine_factory import MachineSpecFactory
+
+raw_agent = json.loads(
+    Path("examples/minimal_three_office.agent.json").read_text(encoding="utf-8")
+)
+compiled = compile_agent_mapping(raw_agent)
+machine = MachineSpecFactory().from_mapping(compiled.to_mapping())
+```
+
+Or load the authored file directly through the normal app entry point:
+
+```bash
+python -m tmviz --spec examples/minimal_three_office.agent.json
+```
 
 ## Project Layout
 
 ```text
 src/tmviz/
-├── app/       # controller, commands, app events, step orchestration
-├── domain/    # tape, rules, movements, machine semantics
-├── factory/   # spec normalization, validation, machine construction
-├── infra/     # event bus, spec loading, logging
-└── ui/        # pygame rendering, layout, input mapping, theme
+|-- app/       # controller, commands, app events, step orchestration
+|-- compiler/  # high-level agent -> flat TM compilation
+|-- domain/    # tape, rules, movements, machine semantics
+|-- factory/   # spec normalization, validation, machine construction
+|-- graph/     # legal office handoff graph validation
+|-- infra/     # event bus, spec loading, logging
+|-- model/     # Pydantic ternary agent authoring models
+`-- ui/        # pygame rendering, layout, input mapping, theme
 
+examples/      # high-level agent specs and compiled TM snapshots
 specs/         # bundled example machines
 tests/         # domain, controller, layout, renderer, and spec tests
 ```
@@ -195,11 +289,12 @@ tests/         # domain, controller, layout, renderer, and spec tests
 This repository currently focuses on:
 
 - a correct, tested domain engine
+- a compiler that flattens high-level ternary agent specs into raw TM specs
 - a `transitions`-driven simulator controller
 - a dense terminal-style `pygame-ce` UI
 - machine specs loaded from JSON
 - pytest and Ruff coverage for the implemented surface
 
-If you want to add new machines, UI refinements, or new simulator behaviors,
-start with the docs linked above and then inspect the corresponding package in
-`src/tmviz/`.
+If you want to add new machines, authoring examples, UI refinements, or new
+simulator behaviors, start with the docs linked above and then inspect the
+corresponding package in `src/tmviz/`.

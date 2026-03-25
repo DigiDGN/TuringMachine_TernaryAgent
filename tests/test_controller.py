@@ -42,3 +42,16 @@ def test_controller_runs_until_halt() -> None:
     assert controller.machine.halt_reason == "accept"
     assert controller.machine.step_count == 4
 
+
+def test_controller_loads_high_level_agent_spec_and_steps() -> None:
+    controller = build_controller()
+    spec = Path(__file__).resolve().parents[1] / "examples" / "minimal_three_office.agent.json"
+
+    controller.execute(LoadMachineCommand(spec))
+    controller.execute(StepCommand())
+
+    assert controller.state == "loaded"
+    assert controller.machine is not None
+    assert controller.machine.current_state == "arbiter__life"
+    assert controller.machine.step_count == 1
+

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from tmviz.compiler import compile_agent_mapping, is_agent_spec_mapping
 from tmviz.domain.machine import TuringMachine
 from tmviz.domain.tape import Tape
 from tmviz.infra.spec_loader import load_json_spec
@@ -17,12 +18,19 @@ class MachineSpecFactory:
     """Factory for creating Turing machines from various spec sources."""
 
     def from_mapping(self, raw_spec: dict[str, Any]) -> TuringMachine:
-        spec = normalize_spec(raw_spec)
+        spec = self.normalize_mapping(raw_spec)
         return self.build_machine(spec)
 
     def from_path(self, path: Path) -> TuringMachine:
         raw_spec = load_json_spec(path)
         return self.from_mapping(raw_spec)
+
+    def normalize_mapping(self, raw_spec: dict[str, Any]) -> MachineSpec:
+        """Normalize raw TM specs or compile high-level agent specs first."""
+
+        if is_agent_spec_mapping(raw_spec):
+            raw_spec = compile_agent_mapping(raw_spec).to_mapping()
+        return normalize_spec(raw_spec)
 
     def build_machine(self, spec: MachineSpec) -> TuringMachine:
         rules = {(rule.current_state, rule.read_symbol): rule for rule in spec.rules}

@@ -7,6 +7,7 @@ from pathlib import Path
 def test_python_module_help_smoke() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
     env["SDL_VIDEODRIVER"] = "dummy"
 
     result = subprocess.run(

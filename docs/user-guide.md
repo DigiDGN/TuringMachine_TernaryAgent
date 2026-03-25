@@ -19,6 +19,12 @@ From an activated virtual environment:
 python -m tmviz
 ```
 
+To open the canonical high-level ternary agent example directly:
+
+```bash
+python -m tmviz --spec examples/minimal_three_office.agent.json
+```
+
 You can also launch it via the installed entry point:
 
 ```bash
@@ -26,6 +32,8 @@ tmviz
 ```
 
 The window is resizable and clamps to a minimum of `960x600`.
+If `--spec` points at a high-level authored agent file, the app compiles it
+first and then runs the resulting flat TM machine through the normal runtime.
 
 ## Reading The Interface
 
@@ -103,6 +111,12 @@ The event rail shows the most recent simulator events. Typical entries include:
 1. Press `Space` to start running.
 2. Use `1`, `2`, or `3` to change the step rate.
 3. Press `Space` again to pause.
+
+### Load a high-level authored agent
+
+1. Launch the app with `python -m tmviz --spec examples/minimal_three_office.agent.json`.
+2. Inspect the compiled control state names such as `generator__seed` and `arbiter__life`.
+3. Step or run exactly as you would with any raw TM spec.
 
 ## Bundled Demo Machines
 

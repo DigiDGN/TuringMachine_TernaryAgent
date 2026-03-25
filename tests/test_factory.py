@@ -38,3 +38,14 @@ def test_factory_rejects_duplicate_rules() -> None:
     with pytest.raises(SpecValidationError):
         factory.from_mapping(invalid_spec)
 
+
+def test_factory_loads_high_level_agent_spec() -> None:
+    factory = MachineSpecFactory()
+    path = Path(__file__).resolve().parents[1] / "examples" / "minimal_three_office.agent.json"
+
+    machine = factory.from_path(path)
+
+    assert machine.name == "Minimal Three Office Agent"
+    assert machine.current_state == "generator__seed"
+    assert len(machine.rules) == 36
+

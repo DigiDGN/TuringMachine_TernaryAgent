@@ -9,6 +9,8 @@
 
 The project currently targets:
 
+- `networkx`
+- `pydantic`
 - `pygame-ce`
 - `transitions`
 - `pytest`
@@ -65,11 +67,14 @@ mypy src
 | Area | Place to start |
 | --- | --- |
 | Machine semantics | `src/tmviz/domain/` |
+| High-level agent models | `src/tmviz/model/` |
+| High-level graph/compiler logic | `src/tmviz/graph/`, `src/tmviz/compiler/` |
 | App state machine and commands | `src/tmviz/app/` |
 | JSON spec validation and loading | `src/tmviz/factory/` |
 | Event bus and logging | `src/tmviz/infra/` |
 | Rendering, layout, and input | `src/tmviz/ui/` |
-| Example machines | `specs/` |
+| Raw runtime example machines | `specs/` |
+| High-level authoring examples | `examples/` |
 | Automated coverage | `tests/` |
 
 ## Adding A New Bundled Spec
@@ -80,11 +85,21 @@ mypy src
 4. Run `pytest -q` to confirm it loads with the existing spec tests.
 5. Update docs if the new machine should be surfaced as a recommended example.
 
+## Adding A High-Level Authoring Example
+
+1. Add the authored agent JSON and compiled TM snapshot under `examples/`.
+2. Do not place high-level authoring files in top-level `specs/`; the app still
+   uses `specs/` as its bundled raw runtime TM set.
+3. Verify the authored file compiles through `tmviz.compiler.compile_agent_mapping`.
+4. Update tests or snapshots if the compiled output is part of the public example surface.
+5. Update docs if the example should be discoverable from README or the spec reference.
+
 ## Testing Expectations
 
 At a minimum, changes should preserve:
 
 - domain correctness
+- high-level model and compiler correctness when those packages are touched
 - controller lifecycle behavior
 - spec loading and validation
 - UI layout and renderer smoke coverage
@@ -92,6 +107,7 @@ At a minimum, changes should preserve:
 Useful existing test areas:
 
 - domain engine tests
+- compiler and authoring model tests
 - controller tests
 - spec loading tests
 - UI layout tests
