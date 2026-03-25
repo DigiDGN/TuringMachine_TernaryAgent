@@ -259,6 +259,24 @@ Or load the authored file directly through the normal app entry point:
 python -m tmviz --spec examples/minimal_three_office.agent.json
 ```
 
+### CLI: compile authored AgentSpec to TM JSON
+
+You can use the small CLI to produce a compiled TM JSON file from a high-level
+agent spec. After an editable install the command is available as `tmviz-compile`.
+
+Example (write to stdout):
+
+```bash
+tmviz-compile examples/minimal_three_office.agent.json
+```
+
+Example (write to file):
+
+```bash
+tmviz-compile examples/minimal_three_office.agent.json examples/minimal_three_office.compiled.json
+```
+
+
 ## Project Layout
 
 ```text

@@ -1,0 +1,73 @@
+{
+  "name": "Three Office Prototype // Compiled",
+  "blank_symbol": "_",
+
+  "states": [
+    "generator__death",
+    "generator__seed",
+    "generator__life",
+    "arbiter__death",
+    "arbiter__seed",
+    "arbiter__life",
+    "critic__death",
+    "critic__seed",
+    "critic__life"
+  ],
+
+  "start_state": "arbiter__seed",
+  "accept_states": [],
+  "reject_states": [],
+
+  "alphabet": ["-1", "0", "+1", "_"],
+  "initial_tape": ["0", "0", "-1", "0", "+1", "_"],
+  "initial_head": 0,
+
+  "rules": [
+    ["generator__death", "-1", "arbiter__seed", "0", "R"],
+    ["generator__death", "0",  "arbiter__life", "+1", "R"],
+    ["generator__death", "+1", "generator__life", "+1", "R"],
+    ["generator__death", "_",  "generator__seed", "0", "R"],
+
+    ["generator__seed", "-1", "arbiter__seed", "0", "R"],
+    ["generator__seed", "0",  "arbiter__life", "+1", "R"],
+    ["generator__seed", "+1", "generator__life", "+1", "R"],
+    ["generator__seed", "_",  "generator__seed", "0", "R"],
+
+    ["generator__life", "-1", "arbiter__seed", "0", "R"],
+    ["generator__life", "0",  "arbiter__life", "+1", "R"],
+    ["generator__life", "+1", "generator__life", "+1", "R"],
+    ["generator__life", "_",  "generator__seed", "0", "R"],
+
+    ["arbiter__death", "-1", "critic__seed", "0", "S"],
+    ["arbiter__death", "0",  "arbiter__seed", "0", "S"],
+    ["arbiter__death", "+1", "arbiter__life", "+1", "R"],
+    ["arbiter__death", "_",  "arbiter__death", "_", "S"],
+
+    ["arbiter__seed", "-1", "arbiter__seed", "0", "S"],
+    ["arbiter__seed", "0",  "generator__seed", "0", "S"],
+    ["arbiter__seed", "+1", "arbiter__life", "+1", "R"],
+    ["arbiter__seed", "_",  "generator__seed", "_", "S"],
+
+    ["arbiter__life", "-1", "arbiter__seed", "0", "S"],
+    ["arbiter__life", "0",  "arbiter__seed", "0", "S"],
+    ["arbiter__life", "+1", "arbiter__life", "+1", "R"],
+    ["arbiter__life", "_",  "arbiter__life", "_", "S"],
+
+    ["critic__death", "-1", "critic__death", "-1", "L"],
+    ["critic__death", "0",  "arbiter__seed", "0", "S"],
+    ["critic__death", "+1", "arbiter__seed", "0", "L"],
+    ["critic__death", "_",  "arbiter__death", "_", "S"],
+
+    ["critic__seed", "-1", "critic__seed", "-1", "L"],
+    ["critic__seed", "0",  "arbiter__seed", "0", "S"],
+    ["critic__seed", "+1", "arbiter__seed", "0", "L"],
+    ["critic__seed", "_",  "arbiter__seed", "_", "S"],
+
+    ["critic__life", "-1", "critic__life", "-1", "L"],
+    ["critic__life", "0",  "arbiter__seed", "0", "S"],
+    ["critic__life", "+1", "arbiter__seed", "0", "L"],
+    ["critic__life", "_",  "arbiter__life", "_", "S"]
+  ],
+
+  "missing_rule_policy": "halt"
+}

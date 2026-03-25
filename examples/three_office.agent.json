@@ -1,0 +1,148 @@
+{
+  "name": "Three Office Prototype",
+  "blank_symbol": "_",
+
+  "alphabet": ["-1", "0", "+1", "_"],
+  "initial_tape": ["0", "0", "-1", "0", "+1", "_"],
+  "initial_head": 0,
+
+  "tape_regions": [
+    { "name": "input", "start": 0, "end": 1 },
+    { "name": "workspace", "start": 2, "end": 4 },
+    { "name": "output", "start": 5, "end": 5 }
+  ],
+
+  "field_seed": [
+    {
+      "id": "claim_0",
+      "kind": "claim",
+      "ternary_value": 0,
+      "confidence": 0.5,
+      "provenance": "seed",
+      "age": 0,
+      "links": ["evidence_0"]
+    },
+    {
+      "id": "evidence_0",
+      "kind": "evidence",
+      "ternary_value": 1,
+      "confidence": 0.8,
+      "provenance": "seed",
+      "age": 0,
+      "links": ["claim_0"]
+    },
+    {
+      "id": "risk_0",
+      "kind": "risk_marker",
+      "ternary_value": -1,
+      "confidence": 0.9,
+      "provenance": "seed",
+      "age": 0,
+      "links": ["claim_0"]
+    }
+  ],
+
+  "offices": [
+    {
+      "id": "generator",
+      "role": "generator",
+      "pillar": "right",
+      "title": "Generator",
+      "description": "Spawn candidates, extend search, propose actions.",
+      "patch_radius": 1,
+      "can_emit_packets": true,
+      "can_commit_to_tape": false,
+      "semantics": {
+        "healthy_label": "useful",
+        "latent_label": "waiting",
+        "corrupt_label": "hallucinating",
+        "healthy_description": "productive expansion with grounded proposals",
+        "latent_description": "candidate generation withheld pending evidence",
+        "corrupt_description": "sprawl, unstable proliferation, tool overuse"
+      }
+    },
+    {
+      "id": "arbiter",
+      "role": "arbiter",
+      "pillar": "center",
+      "title": "Arbiter",
+      "description": "Stabilize neighborhoods, merge compatible structures, resolve tension.",
+      "patch_radius": 1,
+      "can_emit_packets": false,
+      "can_commit_to_tape": true,
+      "semantics": {
+        "healthy_label": "coherent",
+        "latent_label": "pending",
+        "corrupt_label": "false_balance",
+        "healthy_description": "good synthesis and lawful promotion to tape",
+        "latent_description": "not yet enough stability to commit",
+        "corrupt_description": "polished inconsistency and fake harmony"
+      }
+    },
+    {
+      "id": "critic",
+      "role": "critic",
+      "pillar": "left",
+      "title": "Critic",
+      "description": "Prune weak structures, reject unsupported claims, route to sinks.",
+      "patch_radius": 1,
+      "can_emit_packets": false,
+      "can_commit_to_tape": false,
+      "semantics": {
+        "healthy_label": "bounded",
+        "latent_label": "unsure",
+        "corrupt_label": "paralyzed",
+        "healthy_description": "useful filtering and risk detection",
+        "latent_description": "withholding judgment pending evidence",
+        "corrupt_description": "sterile refusal and premature collapse"
+      }
+    }
+  ],
+
+  "paths": [
+    {
+      "source": "generator",
+      "target": "arbiter",
+      "label": "propose_to_synthesize",
+      "legal": true,
+      "preferred_move": "next",
+      "strengthen_on_success": 1.2,
+      "weaken_on_failure": 1.0
+    },
+    {
+      "source": "arbiter",
+      "target": "critic",
+      "label": "needs_boundary_check",
+      "legal": true,
+      "preferred_move": "prev",
+      "strengthen_on_success": 1.1,
+      "weaken_on_failure": 1.2
+    },
+    {
+      "source": "critic",
+      "target": "arbiter",
+      "label": "filtered_back_for_resolution",
+      "legal": true,
+      "preferred_move": "next",
+      "strengthen_on_success": 1.2,
+      "weaken_on_failure": 1.0
+    },
+    {
+      "source": "arbiter",
+      "target": "generator",
+      "label": "needs_more_candidates",
+      "legal": true,
+      "preferred_move": "next",
+      "strengthen_on_success": 1.0,
+      "weaken_on_failure": 1.1
+    }
+  ],
+
+  "start_office": "arbiter",
+  "start_integrity": "seed",
+
+  "accept_offices": [],
+  "reject_offices": [],
+
+  "missing_rule_policy": "halt"
+}
