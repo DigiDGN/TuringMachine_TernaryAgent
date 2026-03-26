@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from tmviz.compiler import compile_agent_mapping
-from tmviz.compile.emit_json import emit_compiled_to_path
+from tmviz.compiler.emit_json import emit_compiled_to_path
 
 
 def main(example_dir: str | Path | None = None) -> int:

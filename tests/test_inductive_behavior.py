@@ -1,6 +1,7 @@
 from tmviz.factory.machine_factory import MachineSpecFactory
 from tmviz.compiler import compile_agent_mapping
-from tests.test_compile_invariants import MINIMAL_AGENT
+
+from conftest import MINIMAL_AGENT
 
 
 def test_inductive_generator_creates_nonblank_symbols():

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -3.12 -m pytest tests/ -v --tb=short)",
+      "Bash(py -3.12 -m pip install -q sqlmodel typer rich)"
+    ]
+  }
+}

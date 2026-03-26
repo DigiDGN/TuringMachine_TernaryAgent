@@ -1,35 +1,23 @@
 import pytest
 
-from tmviz.model.enums import IntegrityMode, OfficeRole
-from tmviz.compile.rules import next_integrity
+from tmviz.model.enums import IntegrityMode
+from tmviz.compiler.rules import next_integrity
 from tmviz.compiler import compile_agent_mapping
 from tmviz.domain.exceptions import SpecValidationError
 
 
 def test_next_integrity_transitions():
     # death + write -1 stays death
-    assert (
-        next_integrity(IntegrityMode.DEATH, OfficeRole.GENERATOR, "-1", "-1")
-        is IntegrityMode.DEATH
-    )
+    assert next_integrity(IntegrityMode.DEATH, "-1") is IntegrityMode.DEATH
 
     # write 0 -> seed
-    assert (
-        next_integrity(IntegrityMode.LIFE, OfficeRole.ARBITER, "0", "0")
-        is IntegrityMode.SEED
-    )
+    assert next_integrity(IntegrityMode.LIFE, "0") is IntegrityMode.SEED
 
     # write +1 -> life
-    assert (
-        next_integrity(IntegrityMode.SEED, OfficeRole.CRITIC, "+1", "+1")
-        is IntegrityMode.LIFE
-    )
+    assert next_integrity(IntegrityMode.SEED, "+1") is IntegrityMode.LIFE
 
     # other writes preserve current
-    assert (
-        next_integrity(IntegrityMode.SEED, OfficeRole.GENERATOR, "_", "_")
-        is IntegrityMode.SEED
-    )
+    assert next_integrity(IntegrityMode.SEED, "_") is IntegrityMode.SEED
 
 
 def test_compile_raises_on_illegal_handoff():

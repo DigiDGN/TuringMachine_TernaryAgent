@@ -13,6 +13,61 @@ from . import theme
 from .layout import SceneMetrics, build_scene_layout, is_compact_size
 
 
+def _ternary_symbol_color(symbol: str, is_head: bool) -> tuple[int, int, int]:
+    """Return semantic color for a ternary tape symbol."""
+
+    if is_head:
+        if symbol == "+1":
+            return theme.TERNARY_POS
+        if symbol == "-1":
+            return theme.TERNARY_NEG
+        return theme.CYAN
+    if symbol == "+1":
+        return theme.TERNARY_POS
+    if symbol == "-1":
+        return theme.TERNARY_NEG
+    if symbol == "0":
+        return theme.TERNARY_ZERO
+    return theme.TERNARY_BLANK
+
+
+def _parse_compiled_state(state: str) -> tuple[str, str]:
+    """Split a compiled state ``office__integrity`` into parts.
+
+    Returns ``(office, integrity)`` or ``(state, "")`` if not compiled.
+    """
+
+    if "__" in state:
+        parts = state.rsplit("__", 1)
+        return parts[0], parts[1]
+    return state, ""
+
+
+def _office_color(office: str) -> tuple[int, int, int]:
+    """Return theme color for an office name."""
+
+    if "generator" in office.lower():
+        return theme.OFFICE_GENERATOR
+    if "arbiter" in office.lower():
+        return theme.OFFICE_ARBITER
+    if "critic" in office.lower():
+        return theme.OFFICE_CRITIC
+    return theme.TEXT
+
+
+def _integrity_color(integrity: str) -> tuple[int, int, int]:
+    """Return theme color for an integrity mode."""
+
+    mode = integrity.lower()
+    if mode == "life":
+        return theme.INTEGRITY_LIFE
+    if mode == "seed":
+        return theme.INTEGRITY_SEED
+    if mode == "death":
+        return theme.INTEGRITY_DEATH
+    return theme.TEXT
+
+
 @dataclass(frozen=True, slots=True)
 class FontPack:
     title: pygame.font.Font
@@ -169,7 +224,11 @@ class Renderer:
                 if snapshot.grid_enabled:
                     pygame.draw.rect(surface, theme.GRID, cell_rect, width=1, border_radius=10)
 
-            symbol_surface = fonts.body.render(symbol, True, theme.CYAN if is_head else theme.TEXT)
+            sym_color = _ternary_symbol_color(symbol, is_head)
+            if not is_head and symbol in ("-1", "+1"):
+                tint = theme.TERNARY_POS_FILL if symbol == "+1" else theme.TERNARY_NEG_FILL
+                self._fill_rect(surface, cell_rect, tint, border_radius=10)
+            symbol_surface = fonts.body.render(symbol, True, sym_color)
             symbol_rect = symbol_surface.get_rect(center=cell_rect.center)
             surface.blit(symbol_surface, symbol_rect)
 
@@ -207,17 +266,23 @@ class Renderer:
             theme.GRID,
         )
 
+        office, integrity = _parse_compiled_state(snapshot.control_state)
         metrics_items = [
             ("APP", snapshot.app_state.upper()),
             ("PHASE", (snapshot.phase or "IDLE").upper()),
             ("SPD", f"{snapshot.steps_per_second:.1f}/S"),
-            ("CTRL", snapshot.control_state),
+            ("OFFICE", office.upper()),
+            ("INTEGRITY", integrity.upper()),
             ("HEAD", str(snapshot.head_position)),
             ("READ", snapshot.current_symbol),
             ("STEPS", str(snapshot.step_count)),
-            ("GRID", "ON" if snapshot.grid_enabled else "OFF"),
         ]
-        self._draw_metric_grid(surface, layout.inspector_metrics, fonts, metrics_items)
+        semantic_colors = {
+            "OFFICE": _office_color(office),
+            "INTEGRITY": _integrity_color(integrity),
+            "READ": _ternary_symbol_color(snapshot.current_symbol, False),
+        }
+        self._draw_metric_grid(surface, layout.inspector_metrics, fonts, metrics_items, semantic_colors)
 
         current_rule = (
             snapshot.current_rule.describe() if snapshot.current_rule else "No active rule."
@@ -278,6 +343,7 @@ class Renderer:
         rect: pygame.Rect,
         fonts: FontPack,
         items: list[tuple[str, str]],
+        semantic_colors: dict[str, tuple[int, int, int]] | None = None,
     ) -> None:
         clip_before = surface.get_clip()
         surface.set_clip(rect)
@@ -302,7 +368,10 @@ class Renderer:
             self._draw_separator(surface, cell.bottom, cell.left, cell.right, theme.TRACK)
             self._blit_text(surface, fonts.small, label, theme.MUTED_TEXT, (cell.x, cell.y + 2))
             value_text = self._ellipsize(fonts.body, value, max(cell.width - 72, 24))
-            value_surface = fonts.body.render(value_text, True, theme.TEXT)
+            value_color = theme.TEXT
+            if semantic_colors and label in semantic_colors:
+                value_color = semantic_colors[label]
+            value_surface = fonts.body.render(value_text, True, value_color)
             value_rect = value_surface.get_rect(
                 midright=(cell.right, cell.y + (fonts.body.get_linesize() // 2) + 2)
             )

@@ -5,45 +5,21 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
-import logging
 
 from pydantic import ValidationError
 
 from tmviz.domain.exceptions import SpecValidationError
+from tmviz.events.signals import compile_finished, compile_highways, compile_started
 from tmviz.factory.validators import normalize_spec
 from tmviz.model import AgentSpec
+from tmviz.trace.logger import get_logger
 
 from .rules import compile_rules
 from .states import compile_accept_states, compile_reject_states, compile_start_state, expand_states
 
 from tmviz.graph import build_office_graph, get_highways
 
-# optional integrations: blinker signals and structlog logging
-try:
-    import blinker as _blinker  # type: ignore
-
-    def _signal(name: str):
-        return _blinker.signal(name)
-
-except Exception:
-    class _DummySignal:
-        def send(self, *_, **__):
-            return None
-
-    def _signal(name: str):
-        return _DummySignal()
-
-try:
-    import structlog  # type: ignore
-
-    _LOGGER = structlog.get_logger(__name__)
-except Exception:
-    _LOGGER = logging.getLogger(__name__)
-
-# define signals
-compile_started = _signal("tmviz.compile.started")
-compile_highways = _signal("tmviz.compile.highways")
-compile_finished = _signal("tmviz.compile.finished")
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)

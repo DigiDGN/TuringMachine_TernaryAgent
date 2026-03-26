@@ -25,3 +25,25 @@ ACTIVE_GLOW = (87, 255, 196, 82)
 HEAD_FILL = (9, 44, 38)
 HEAD_OUTLINE = (93, 235, 255)
 
+# ── Semantic overlay: ternary symbol colors ──────────────────────────
+
+TERNARY_POS = (92, 255, 160)     # +1  bright green
+TERNARY_ZERO = (180, 200, 188)   # 0   neutral grey-green
+TERNARY_NEG = (255, 110, 110)    # -1  soft red
+TERNARY_BLANK = (58, 102, 71)    # _   dim
+
+TERNARY_POS_FILL = (14, 58, 32, 180)
+TERNARY_NEG_FILL = (58, 14, 14, 180)
+
+# ── Semantic overlay: integrity mode colors ──────────────────────────
+
+INTEGRITY_LIFE = (60, 230, 120)   # healthy / productive
+INTEGRITY_SEED = (230, 200, 60)   # latent / unresolved
+INTEGRITY_DEATH = (230, 70, 70)   # corrupt / trapped
+
+# ── Semantic overlay: office role indicators ─────────────────────────
+
+OFFICE_GENERATOR = (92, 200, 255)  # blue-cyan
+OFFICE_ARBITER = (180, 160, 255)   # soft purple
+OFFICE_CRITIC = (255, 180, 90)     # warm amber
+
